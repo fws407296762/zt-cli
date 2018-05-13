@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+const clone = require("git-clone");
+const command = require("commander");
+const shell = require("shelljs");
+const log = require("tracer").colorConsole();
+const package = require("../package");
+
+command
+  .version(package.version)
+  .description(package.description)
+  .usage('<command> [options]')
+  .command("init","生成一个新的项目")
+  .command("uptpl","更新公共模板文件");
+
+command.parse(process.argv)

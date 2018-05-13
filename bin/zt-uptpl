@@ -1,0 +1,109 @@
+/**
+ * Created by fws on 2018/5/1.
+ */
+
+const commander = require("commander");
+const Git = require("nodegit");
+const GitKit = require("nodegit-kit");
+const ora = require("ora");
+const inquirer = require('inquirer');
+const chalk = require("chalk");
+const fs = require("fs");
+const path = require("path");
+const config = require("../util/config");
+const spinner = ora('更新模板');
+spinner.start();
+
+let GitClonePromise = Git.Clone(config.git,config.tmpdir);
+let currentRepository = null;
+
+GitKit.open(config.tmpdir).then(function(repository){
+  spinner.stop();
+  currentRepository = repository;
+  return GitKit.log(repository);
+}).then(function(history){
+  let prevCommit = history[1].commit,
+    currentCommit = history[0].commit;
+
+  return GitKit.diff(currentRepository,prevCommit,currentCommit)
+}).then(function(diff){
+
+  let choices = diff.map(function(dif){
+    let status = dif.status;
+    let path = dif.path;
+    let statusColor = {
+      "modified":{
+        color:"#f00",
+        title:"修改"
+      },
+      "added":{
+        color:"#008000",
+        title:"新增"
+      },
+      "deleted":{
+        color:"#800",
+        title:"删除"
+      }
+    };
+    return {
+      name:chalk.hex(statusColor[status].color)(path,statusColor[status].title),
+      value:{
+        src:path,
+        status:status
+      },
+      short:path
+    }
+  });
+  var questions = [
+    {
+      type: 'checkbox',
+      name: 'upfiles',
+      message: '选择你要更新的文件',
+      choices: choices
+    }
+  ];
+
+  inquirer.prompt(questions).then(function(answers) {
+    let upfiles = answers.upfiles;
+    if(!upfiles.length){
+      console.log(chalk.hex("#008000")("模板暂无更新内容"))
+      return false;
+    }
+    let index = 0;
+    (function recurAnswers(index){
+      if(index === upfiles.length){
+        return false;
+      }
+      let fileSelection = upfiles[index];
+      let status = fileSelection.status,
+          src = path.join(config.tmpdir,fileSelection.src);
+      if(status === "added"){
+        let srcParse = path.parse(fileSelection.src);
+        let dir = srcParse.dir;
+        try{
+          mkdirsSync(dir);
+          fs.copyFileSync(src,'./'+fileSelection.src);
+        }catch(e){
+          throw e;
+        }
+      }else if(status === "modified"){
+        fs.copyFileSync(src,'./'+fileSelection.src);
+      }else if(status === "deleted"){
+
+      }
+      recurAnswers(++index);
+    })(index)
+  })
+});
+
+// 递归创建目录 同步方法
+function mkdirsSync(dirname) {
+  if (fs.existsSync(dirname)) {
+    return true;
+  } else {
+    if (mkdirsSync(path.dirname(dirname))) {
+      fs.mkdirSync(dirname);
+      return true;
+    }
+  }
+}

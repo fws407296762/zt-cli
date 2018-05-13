@@ -1,0 +1,58 @@
+#!/usr/bin/env node
+
+const command = require("commander");
+const shell = require("shelljs");
+const Git = require("nodegit");
+const chalk = require("chalk");
+const log = require("tracer").colorConsole();
+const ora = require("ora");
+const exists = require('fs').existsSync;
+const path = require("path");
+const package = require("../package");
+const generate = require("../util/generate");
+const config = require("../util/config");
+
+command
+  .usage("<project-name>")
+  .option("-c, --clone","从 git 上克隆")
+  .option("--offline","使用缓存在本地的模板");
+
+command.on("--help",()=>{
+  console.log('  例子:')
+  console.log()
+  console.log(chalk.gray('    # 创建一个模板'))
+  console.log('    $ zt init my-project')
+});
+
+//帮助
+function help(){
+  command.parse(process.argv);
+  if(process.argv.length < 3){
+    return command.help();
+  }
+}
+help();
+
+//设置
+let project = command.args[0];
+let to = path.resolve(project,".");
+
+//运行
+downloadAndGenerate(project)
+
+//下载模板并根据描述设置
+function downloadAndGenerate(project){
+  const spinner = ora('下载模板');
+  spinner.start();
+  if(exists(tmp)){
+    shell.rm("-rf",config.tmpdir);
+  }
+  Git.Clone(config.git,config.tmpdir)
+    .then(function(){
+      spinner.stop();
+      shell.rm("-rf",config.tmpdir+`/.git`);
+      generate(project,config.tmpdir,to,err =>{
+          log.info("项目建立完成，如有疑问请联系付文松")
+      })
+  });
+}
