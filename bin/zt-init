@@ -36,7 +36,7 @@ help();
 //设置
 let project = command.args[0];
 let to = path.resolve(project,".");
-
+let tmp = config.tmpdir;
 //运行
 downloadAndGenerate(project)
 

@@ -13,4 +13,4 @@ command
   .command("init","生成一个新的项目")
   .command("uptpl","更新公共模板文件");
 
-command.parse(process.argv)
+command.parse(process.argv);

@@ -1,9 +1,7 @@
-/**
- * Created by fws on 2018/5/1.
- */
-
+#!/usr/bin/env node
 const commander = require("commander");
 const Git = require("nodegit");
+const shell = require("shelljs");
 const GitKit = require("nodegit-kit");
 const ora = require("ora");
 const inquirer = require('inquirer');
@@ -12,20 +10,24 @@ const fs = require("fs");
 const path = require("path");
 const config = require("../util/config");
 const spinner = ora('更新模板');
+const exists = require('fs').existsSync;
 spinner.start();
 
-let GitClonePromise = Git.Clone(config.git,config.tmpdir);
 let currentRepository = null;
+let tmp = config.tmpdir;
 
-GitKit.open(config.tmpdir).then(function(repository){
+if(exists(tmp)){
+  shell.rm("-rf",config.tmpdir);
+}
+
+Git.Clone(config.git,config.tmpdir).then(function(repository){
   spinner.stop();
   currentRepository = repository;
   return GitKit.log(repository);
 }).then(function(history){
-  let prevCommit = history[1].commit,
-    currentCommit = history[0].commit;
-
-  return GitKit.diff(currentRepository,prevCommit,currentCommit)
+    let prevCommit = history[1].commit,
+        currentCommit = history[0].commit;
+    return GitKit.diff(currentRepository,prevCommit,currentCommit)
 }).then(function(diff){
 
   let choices = diff.map(function(dif){
@@ -62,26 +64,26 @@ GitKit.open(config.tmpdir).then(function(repository){
       choices: choices
     }
   ];
-
   inquirer.prompt(questions).then(function(answers) {
     let upfiles = answers.upfiles;
     if(!upfiles.length){
-      console.log(chalk.hex("#008000")("模板暂无更新内容"))
+      console.log(chalk.hex("#008000")("模板暂无更新内容"));
       return false;
     }
     let index = 0;
     (function recurAnswers(index){
       if(index === upfiles.length){
+        shell.rm("-rf",config.tmpdir);
         return false;
       }
       let fileSelection = upfiles[index];
       let status = fileSelection.status,
-          src = path.join(config.tmpdir,fileSelection.src);
+        src = path.join(config.tmpdir,fileSelection.src);
       if(status === "added"){
         let srcParse = path.parse(fileSelection.src);
         let dir = srcParse.dir;
         try{
-          mkdirsSync(dir);
+          let ismkdir = mkdirsSync(dir);
           fs.copyFileSync(src,'./'+fileSelection.src);
         }catch(e){
           throw e;
@@ -89,11 +91,12 @@ GitKit.open(config.tmpdir).then(function(repository){
       }else if(status === "modified"){
         fs.copyFileSync(src,'./'+fileSelection.src);
       }else if(status === "deleted"){
-
+        shell.rm("-rf",'./'+fileSelection.src);
       }
       recurAnswers(++index);
-    })(index)
-  })
+    })(index);
+  });
+
 });
 
 // 递归创建目录 同步方法
