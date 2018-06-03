@@ -1,6 +1,6 @@
 {
   "name": "zt-cli",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "正通前端 cli",
   "main": "index.js",
   "scripts": {
