@@ -38,7 +38,7 @@ let project = command.args[0];
 let to = path.resolve(project,".");
 let tmp = config.tmpdir;
 //运行
-downloadAndGenerate(project)
+downloadAndGenerate(project);
 
 //下载模板并根据描述设置
 function downloadAndGenerate(project){
