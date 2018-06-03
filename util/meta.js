@@ -20,14 +20,32 @@ module.exports = {
       when: 'isNotTest',
       type: 'string',
       required: true,
-      message: '项目名',
+      message: '模块名称',
     },
     description: {
       when: 'isNotTest',
       type: 'string',
       required: false,
-      message: 'Project description',
-      default: '项目描述',
+      message: '模块描述',
+      default: '模块描述',
+    },
+    project:{
+      when: 'isNotTest',
+      type: 'list',
+      required: true,
+      message: '所属项目',
+      choices: [
+        {
+          name: 'store',
+          value: 'store',
+          short: 'store',
+        },
+        {
+          name: 'group',
+          value: 'group',
+          short: 'group',
+        }
+      ]
     },
     author: {
       when: 'isNotTest',
@@ -40,17 +58,17 @@ module.exports = {
       message: '创建完后是否自动安装依赖？',
       choices: [
         {
-          name: 'Yes, use CNPM',
+          name: '使用 cnpm',
           value: 'cnpm',
           short: 'cnpm',
         },
         {
-          name: 'Yes, use NPM',
+          name: '使用 npm',
           value: 'npm',
           short: 'npm',
         },
         {
-          name: 'No, I will handle that myself',
+          name: '使用其他工具',
           value: false,
           short: 'no',
         },

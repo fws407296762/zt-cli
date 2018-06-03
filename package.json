@@ -3,9 +3,6 @@
   "version": "1.1.8",
   "description": "正通前端 cli",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "松鼠闹IT",
   "license": "ISC",
   "bin": {
@@ -27,7 +24,5 @@
     "shelljs": "^0.8.1",
     "tracer": "^0.8.12"
   },
-  "devDependencies": {},
-  "_from": "zt-cli@1.1.7",
-  "_resolved": "http://registry.npm.taobao.org/zt-cli/download/zt-cli-1.1.7.tgz"
+  "devDependencies": {}
 }
